@@ -5,10 +5,10 @@ from cs285.infrastructure.rl_trainer import RL_Trainer
 from cs285.agents.bc_agent import BCAgent
 from cs285.policies.loaded_gaussian_policy import LoadedGaussianPolicy
 
+
 class BC_Trainer(object):
 
     def __init__(self, params):
-
         #######################
         ## AGENT PARAMS
         #######################
@@ -18,17 +18,17 @@ class BC_Trainer(object):
             'size': params['size'],
             'learning_rate': params['learning_rate'],
             'max_replay_buffer_size': params['max_replay_buffer_size'],
-            }
+        }
 
         self.params = params
-        self.params['agent_class'] = BCAgent ## HW1: you will modify this
+        self.params['agent_class'] = BCAgent  ## HW1: you will modify this
         self.params['agent_params'] = agent_params
 
         ################
         ## RL TRAINER
         ################
 
-        self.rl_trainer = RL_Trainer(self.params) ## HW1: you will modify this
+        self.rl_trainer = RL_Trainer(self.params)  ## HW1: you will modify this
 
         #######################
         ## LOAD EXPERT POLICY
@@ -39,7 +39,6 @@ class BC_Trainer(object):
         print('Done restoring expert policy...')
 
     def run_training_loop(self):
-
         self.rl_trainer.run_training_loop(
             n_iter=self.params['n_iter'],
             initial_expertdata=self.params['expert_data'],
@@ -53,17 +52,22 @@ class BC_Trainer(object):
 def main():
     import argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('--expert_policy_file', '-epf', type=str, required=True)  # relative to where you're running this script from
-    parser.add_argument('--expert_data', '-ed', type=str, required=True) #relative to where you're running this script from
-    parser.add_argument('--env_name', '-env', type=str, help='choices: Ant-v2, Humanoid-v2, Walker-v2, HalfCheetah-v2, Hopper-v2', required=True)
+    parser.add_argument('--expert_policy_file', '-epf', type=str,
+                        required=True)  # relative to where you're running this script from
+    parser.add_argument('--expert_data', '-ed', type=str,
+                        required=True)  # relative to where you're running this script from
+    parser.add_argument('--env_name', '-env', type=str,
+                        help='choices: Ant-v2, Humanoid-v2, Walker-v2, HalfCheetah-v2, Hopper-v2', required=True)
     parser.add_argument('--exp_name', '-exp', type=str, default='pick an experiment name', required=True)
     parser.add_argument('--do_dagger', action='store_true')
     parser.add_argument('--ep_len', type=int)
 
-    parser.add_argument('--num_agent_train_steps_per_iter', type=int, default=1000)  # number of gradient steps for training policy (per iter in n_iter)
+    parser.add_argument('--num_agent_train_steps_per_iter', type=int,
+                        default=1000)  # number of gradient steps for training policy (per iter in n_iter)
     parser.add_argument('--n_iter', '-n', type=int, default=1)
 
-    parser.add_argument('--batch_size', type=int, default=1000)  # training data collected (in the env) during each iteration
+    parser.add_argument('--batch_size', type=int,
+                        default=1000)  # training data collected (in the env) during each iteration
     parser.add_argument('--eval_batch_size', type=int,
                         default=1000)  # eval data collected (in the env) for logging metrics
     parser.add_argument('--train_batch_size', type=int,
@@ -92,11 +96,12 @@ def main():
     if args.do_dagger:
         # Use this prefix when submitting. The auto-grader uses this prefix.
         logdir_prefix = 'q2_'
-        assert args.n_iter>1, ('DAGGER needs more than 1 iteration (n_iter>1) of training, to iteratively query the expert and train (after 1st warmstarting from behavior cloning).')
+        assert args.n_iter > 1, (
+            'DAGGER needs more than 1 iteration (n_iter>1) of training, to iteratively query the expert and train (after 1st warmstarting from behavior cloning).')
     else:
         # Use this prefix when submitting. The auto-grader uses this prefix.
         logdir_prefix = 'q1_'
-        assert args.n_iter==1, ('Vanilla behavior cloning collects expert data just once (n_iter=1)')
+        assert args.n_iter == 1, ('Vanilla behavior cloning collects expert data just once (n_iter=1)')
 
     ## directory for logging
     data_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), '../../data')
@@ -105,9 +110,8 @@ def main():
     logdir = logdir_prefix + args.exp_name + '_' + args.env_name + '_' + time.strftime("%d-%m-%Y_%H-%M-%S")
     logdir = os.path.join(data_path, logdir)
     params['logdir'] = logdir
-    if not(os.path.exists(logdir)):
+    if not (os.path.exists(logdir)):
         os.makedirs(logdir)
-
 
     ###################
     ### RUN TRAINING
@@ -115,6 +119,7 @@ def main():
 
     trainer = BC_Trainer(params)
     trainer.run_training_loop()
+
 
 if __name__ == "__main__":
     main()
