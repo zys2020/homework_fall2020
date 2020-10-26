@@ -1,2 +1,5 @@
 *.pyc
 data/
+.idea
+mujoco/
+**/cs285.egg-info
