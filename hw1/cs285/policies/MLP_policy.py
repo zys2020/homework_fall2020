@@ -52,6 +52,8 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
                                         self.learning_rate)
         else:
             self.logits_na = None
+            # Create a neural network
+            # Question: here created a neural network, but forward method is still needed to implement.
             self.mean_net = ptu.build_mlp(
                 input_size=self.ob_dim,
                 output_size=self.ac_dim,
@@ -62,6 +64,7 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
                 torch.zeros(self.ac_dim, dtype=torch.float32, device=ptu.device)
             )
             self.logstd.to(ptu.device)
+            # Create a optimizer
             self.optimizer = optim.Adam(
                 itertools.chain([self.logstd], self.mean_net.parameters()),
                 self.learning_rate
@@ -109,8 +112,21 @@ class MLPPolicySL(MLPPolicy):
             adv_n=None, acs_labels_na=None, qvals=None
     ):
         # TODO: update the policy and return the loss
-        loss = TODO
+        pred_actions = self.forward(observations)
+        loss = self.loss(pred_actions, actions)
         return {
             # You can add extra logging information here, but keep this line
             'Training Loss': ptu.to_numpy(loss),
         }
+
+    def forward(self, observation: torch.FloatTensor):
+        action = self.mean_net(observation)
+        return action
+
+    def get_action(self, obs: np.ndarray):
+        if len(obs.shape) > 1:
+            observation = obs
+        else:
+            observation = obs[None]
+        action = self.forward(observation)
+        return ptu.to_numpy(action)
