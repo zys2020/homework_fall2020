@@ -52,7 +52,7 @@ def build_mlp(
         # Fully connected layer
         layer = ("FC{}".format(i), nn.Linear(input_size, size))
         model_list.append(layer)
-        # Activation function
+        # Activation function, the default is tanh which varies between[-1, 1] meeting action_space's low and high
         layer = ("Activation{}".format(i), activation)
         model_list.append(layer)
         # This layer's output size
@@ -60,7 +60,9 @@ def build_mlp(
     # Output fully connected layer
     layer = ("Output layer", nn.Linear(input_size, output_size))
     model_list.append(layer)
-    # Output activation function
+    # Output activation function. Note: Identity function is used, but nn.Linear's output whose weights and bias
+    # are initialized by nn.init.kaiming_uniform_() may not be in [-1,1].
+    # However, homework1 utilize the identity function worse than TanH function making sure output is in [-1,1].
     output = ("Output Activation", output_activation)
     model_list.append(output)
     # Create sequential model
