@@ -112,7 +112,9 @@ class MLPPolicySL(MLPPolicy):
             adv_n=None, acs_labels_na=None, qvals=None
     ):
         # TODO: update the policy and return the loss
+        observations = torch.tensor(observations)
         pred_actions = self.forward(observations)
+        actions = torch.tensor(actions)
         loss = self.loss(pred_actions, actions)
         return {
             # You can add extra logging information here, but keep this line
@@ -120,6 +122,7 @@ class MLPPolicySL(MLPPolicy):
         }
 
     def forward(self, observation: torch.FloatTensor):
+        observation = torch.tensor(observation, dtype=torch.float32)
         action = self.mean_net(observation)
         return action
 
@@ -128,5 +131,6 @@ class MLPPolicySL(MLPPolicy):
             observation = obs
         else:
             observation = obs[None]
+        observation = torch.tensor(observation)
         action = self.forward(observation)
         return ptu.to_numpy(action)

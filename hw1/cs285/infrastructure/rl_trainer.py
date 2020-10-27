@@ -163,7 +163,7 @@ class RL_Trainer(object):
         # ``` return loaded_paths, 0, None ```
         if itr == 0:
             with open(load_initial_expertdata, 'rb') as f:
-                paths = pickle.load(f)[0]
+                paths = pickle.load(f)
             return paths, 0, None
         # (2) collect `self.params['batch_size']` transitions
 
@@ -193,7 +193,7 @@ class RL_Trainer(object):
             # HINT1: use the agent's sample function
             # HINT2: how much data = self.params['train_batch_size']
             # ob_batch, ac_batch, re_batch, next_ob_batch, terminal_batch = TODO
-            ob_batch, ac_batch, re_batch, next_ob_batch, terminal_batch = self.agent.sample()
+            ob_batch, ac_batch, re_batch, next_ob_batch, terminal_batch = self.agent.sample(self.params['batch_size'])
 
             # TODO use the sampled data to train an agent
             # HINT: use the agent's train function
