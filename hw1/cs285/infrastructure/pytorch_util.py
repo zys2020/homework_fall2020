@@ -52,7 +52,7 @@ def build_mlp(
         # Fully connected layer
         layer = ("FC{}".format(i), nn.Linear(input_size, size))
         model_list.append(layer)
-        # Activation function, the default is tanh which varies between[-1, 1] meeting action_space's low and high
+        # Activation function, the default is TanH which varies between[-1, 1] meeting action_space's low and high
         layer = ("Activation{}".format(i), activation)
         model_list.append(layer)
         # This layer's output size
