@@ -2,12 +2,10 @@ import abc
 import itertools
 from typing import Any
 from torch import nn
-from torch.nn import functional as F
 from torch import optim
 
 import numpy as np
 import torch
-from torch import distributions
 
 from cs285.infrastructure import pytorch_util as ptu
 from cs285.policies.base_policy import BasePolicy
@@ -112,9 +110,9 @@ class MLPPolicySL(MLPPolicy):
             adv_n=None, acs_labels_na=None, qvals=None
     ):
         # TODO: update the policy and return the loss
-        observations = torch.FloatTensor(observations)
+        observations = ptu.from_numpy(observations.astype(np.float32))
         pred_actions = self.forward(observations)
-        actions = torch.tensor(actions)
+        actions = torch.FloatTensor(actions)
         loss = self.loss(pred_actions, actions)
         return {
             # You can add extra logging information here, but keep this line
@@ -122,7 +120,6 @@ class MLPPolicySL(MLPPolicy):
         }
 
     def forward(self, observation: torch.FloatTensor):
-        observation = torch.tensor(observation, dtype=torch.float32)
         action = self.mean_net(observation)
         return action
 
@@ -131,6 +128,6 @@ class MLPPolicySL(MLPPolicy):
             observation = obs
         else:
             observation = obs[None]
-        observation = torch.FloatTensor(observation)
+        observation = ptu.from_numpy(observation.astype(np.float32))
         action = self.forward(observation)
         return ptu.to_numpy(action)
