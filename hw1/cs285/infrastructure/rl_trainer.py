@@ -166,7 +166,12 @@ class RL_Trainer(object):
                 # the number of training data collected (in the env) during each iteration defaults 1000
                 # so the expert data's shape is [1000, x](e.g., observation's x is 111, action's x is 8 ,etc)
                 paths = pickle.load(f)
-            return paths, 0, None
+                new_paths = []
+                for path in paths:
+                    for key in path:
+                        path[key] = path[key][:batch_size]
+                    new_paths.append(path)
+            return new_paths, 0, None
         # (2) collect `self.params['batch_size']` transitions
 
         # TODO collect `batch_size` samples to be used for training

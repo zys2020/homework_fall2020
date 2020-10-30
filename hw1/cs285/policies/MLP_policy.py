@@ -106,7 +106,9 @@ class MLPPolicySL(MLPPolicy):
         self.loss = nn.MSELoss()
 
     def update(
-            self, observations, actions,
+            self,
+            observations,  # used to predict action
+            actions,  # true action
             adv_n=None, acs_labels_na=None, qvals=None
     ):
         # TODO: update the policy and return the loss
