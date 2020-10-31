@@ -116,6 +116,20 @@ class MLPPolicySL(MLPPolicy):
         pred_actions = self.forward(observations)
         actions = torch.FloatTensor(actions)
         loss = self.loss(pred_actions, actions)
+
+        # Before the backward pass, use the optimizer object to zero all of the
+        # gradients for the variables it will update (which are the learnable
+        # weights of the model). This is because by default, gradients are
+        # accumulated in buffers( i.e, not overwritten) whenever .backward()
+        # is called. Checkout docs of torch.autograd.backward for more details.
+        self.optimizer.zero_grad()
+
+        # Backward pass: compute gradient of the loss with respect to model parameters
+        loss.backward()
+
+        # Calling the step function on an Optimizer makes an update to its
+        # parameters
+        self.optimizer.step()
         return {
             # You can add extra logging information here, but keep this line
             'Training Loss': ptu.to_numpy(loss),
