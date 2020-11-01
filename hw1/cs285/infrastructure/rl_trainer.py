@@ -131,6 +131,7 @@ class RL_Trainer(object):
                 print('\nBeginning logging procedure...')
                 self.perform_logging(
                     itr, paths, eval_policy, train_video_paths, training_logs)
+                    # itr, paths, expert_policy, train_video_paths, training_logs)
 
                 if self.params['save_params']:
                     print('\nSaving agent params')
