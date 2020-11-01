@@ -284,5 +284,12 @@ class RL_Trainer(object):
                 print('{} : {}'.format(key, value))
                 self.logger.log_scalar(value, key, itr)
             print('Done logging...\n\n')
-
+            import json
+            import os
+            filename = os.path.join(self.logger._summ_writer.logdir, "result.json")
+            result = {}
+            for k, v in logs.items():
+                result[k] = float(v)
+            with open(filename, 'w') as f:
+                json.dump(result, f)
             self.logger.flush()

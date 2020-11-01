@@ -112,6 +112,10 @@ def main():
     params['logdir'] = logdir
     if not (os.path.exists(logdir)):
         os.makedirs(logdir)
+    import json
+    filename = os.path.join(logdir, "run_params.json")
+    with open(filename, 'w') as f:
+        json.dump(params, f)
 
     ###################
     ### RUN TRAINING
