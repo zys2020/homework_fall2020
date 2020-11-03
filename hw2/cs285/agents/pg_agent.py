@@ -131,7 +131,8 @@ class PGAgent(BaseAgent):
         # TODO: create list_of_discounted_returns
         # Hint: note that all entries of this output are equivalent
         # because each sum is from 0 to T (and doesnt involve t)
-
+        gammas = np.power(self.gamma, range(len(rewards)))
+        list_of_discounted_returns = gammas * np.array(rewards)
         return list_of_discounted_returns
 
     def _discounted_cumsum(self, rewards):
@@ -146,5 +147,10 @@ class PGAgent(BaseAgent):
         # because the summation happens over [t, T] instead of [0, T]
         # HINT2: it is possible to write a vectorized solution, but a solution
         # using a for loop is also fine
-
+        rewards.reverse()
+        list_of_discounted_cumsums = [rewards[0]]
+        for reward in rewards[1:]:
+            discount_reward = np.sum(self.gamma * np.array(list_of_discounted_cumsums)) + reward
+            list_of_discounted_cumsums.append(discount_reward)
+        list_of_discounted_cumsums.reverse()
         return list_of_discounted_cumsums
