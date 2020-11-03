@@ -50,8 +50,8 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
         else:
             self.logits_na = None
             self.mean_net = ptu.build_mlp(input_size=self.ob_dim,
-                                      output_size=self.ac_dim,
-                                      n_layers=self.n_layers, size=self.size)
+                                          output_size=self.ac_dim,
+                                          n_layers=self.n_layers, size=self.size)
             self.logstd = nn.Parameter(
                 torch.zeros(self.ac_dim, dtype=torch.float32, device=ptu.device)
             )
@@ -108,7 +108,6 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
 
 class MLPPolicyPG(MLPPolicy):
     def __init__(self, ac_dim, ob_dim, n_layers, size, **kwargs):
-
         super().__init__(ac_dim, ob_dim, n_layers, size, **kwargs)
         self.baseline_loss = nn.MSELoss()
 
@@ -119,10 +118,10 @@ class MLPPolicyPG(MLPPolicy):
 
         # TODO: compute the loss that should be optimized when training with policy gradient
         # HINT1: Recall that the expression that we want to MAXIMIZE
-            # is the expectation over collected trajectories of:
-            # sum_{t=0}^{T-1} [grad [log pi(a_t|s_t) * (Q_t - b_t)]]
+        # is the expectation over collected trajectories of:
+        # sum_{t=0}^{T-1} [grad [log pi(a_t|s_t) * (Q_t - b_t)]]
         # HINT2: you will want to use the `log_prob` method on the distribution returned
-            # by the `forward` method
+        # by the `forward` method
         # HINT3: don't forget that `optimizer.step()` MINIMIZES a loss
 
         loss = TODO
@@ -139,12 +138,12 @@ class MLPPolicyPG(MLPPolicy):
 
             ## TODO: use the `forward` method of `self.baseline` to get baseline predictions
             baseline_predictions = TODO
-            
+
             ## avoid any subtle broadcasting bugs that can arise when dealing with arrays of shape
             ## [ N ] versus shape [ N x 1 ]
             ## HINT: you can use `squeeze` on torch tensors to remove dimensions of size 1
             assert baseline_predictions.shape == targets.shape
-            
+
             # TODO: compute the loss that should be optimized for training the baseline MLP (`self.baseline`)
             # HINT: use `F.mse_loss`
             baseline_loss = TODO
@@ -171,4 +170,3 @@ class MLPPolicyPG(MLPPolicy):
         obs = ptu.from_numpy(obs)
         predictions = self.baseline(obs)
         return ptu.to_numpy(predictions)[:, 0]
-

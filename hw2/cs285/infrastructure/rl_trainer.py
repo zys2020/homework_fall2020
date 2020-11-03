@@ -15,7 +15,7 @@ from cs285.infrastructure.logger import Logger
 
 # how many rollouts to save as videos to tensorboard
 MAX_NVIDEO = 2
-MAX_VIDEO_LEN = 40 # we overwrite this in the code below
+MAX_VIDEO_LEN = 40  # we overwrite this in the code below
 
 
 class RL_Trainer(object):
@@ -48,7 +48,7 @@ class RL_Trainer(object):
         self.env.seed(seed)
 
         # import plotting (locally if 'obstacles' env)
-        if not(self.params['env_name']=='obstacles-cs285-v0'):
+        if not (self.params['env_name'] == 'obstacles-cs285-v0'):
             import matplotlib
             matplotlib.use('Agg')
 
@@ -73,14 +73,13 @@ class RL_Trainer(object):
 
         # simulation timestep, will be used for video saving
         if 'model' in dir(self.env):
-            self.fps = 1/self.env.model.opt.timestep
+            self.fps = 1 / self.env.model.opt.timestep
         elif 'env_wrappers' in self.params:
-            self.fps = 30 # This is not actually used when using the Monitor wrapper
+            self.fps = 30  # This is not actually used when using the Monitor wrapper
         elif 'video.frames_per_second' in self.env.env.metadata.keys():
             self.fps = self.env.env.metadata['video.frames_per_second']
         else:
             self.fps = 10
-
 
         #############
         ## AGENT
@@ -107,7 +106,7 @@ class RL_Trainer(object):
         self.start_time = time.time()
 
         for itr in range(n_iter):
-            print("\n\n********** Iteration %i ************"%itr)
+            print("\n\n********** Iteration %i ************" % itr)
 
             # decide if videos should be rendered/logged at this iteration
             if itr % self.params['video_log_freq'] == 0 and self.params['video_log_freq'] != -1:
@@ -126,8 +125,8 @@ class RL_Trainer(object):
 
             # collect trajectories, to be used for training
             training_returns = self.collect_training_trajectories(itr,
-                                initial_expertdata, collect_policy,
-                                self.params['batch_size'])
+                                                                  initial_expertdata, collect_policy,
+                                                                  self.params['batch_size'])
             paths, envsteps_this_batch, train_video_paths = training_returns
             self.total_envsteps += envsteps_this_batch
 
@@ -169,19 +168,21 @@ class RL_Trainer(object):
 
         # collect eval trajectories, for logging
         print("\nCollecting data for eval...")
-        eval_paths, eval_envsteps_this_batch = utils.sample_trajectories(self.env, eval_policy, self.params['eval_batch_size'], self.params['ep_len'])
+        eval_paths, eval_envsteps_this_batch = utils.sample_trajectories(self.env, eval_policy,
+                                                                         self.params['eval_batch_size'],
+                                                                         self.params['ep_len'])
 
         # save eval rollouts as videos in tensorboard event file
         if self.logvideo and train_video_paths != None:
             print('\nCollecting video rollouts eval')
             eval_video_paths = utils.sample_n_trajectories(self.env, eval_policy, MAX_NVIDEO, MAX_VIDEO_LEN, True)
 
-            #save train/eval videos
+            # save train/eval videos
             print('\nSaving train rollouts as videos...')
             self.logger.log_paths_as_videos(train_video_paths, itr, fps=self.fps, max_videos_to_save=MAX_NVIDEO,
                                             video_title='train_rollouts')
-            self.logger.log_paths_as_videos(eval_video_paths, itr, fps=self.fps,max_videos_to_save=MAX_NVIDEO,
-                                             video_title='eval_rollouts')
+            self.logger.log_paths_as_videos(eval_video_paths, itr, fps=self.fps, max_videos_to_save=MAX_NVIDEO,
+                                            video_title='eval_rollouts')
 
         #######################
 
@@ -224,4 +225,3 @@ class RL_Trainer(object):
             print('Done logging...\n\n')
 
             self.logger.flush()
-

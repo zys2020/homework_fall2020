@@ -1,6 +1,7 @@
 import glob
 import tensorflow as tf
 
+
 def get_section_results(file):
     """
         requires tensorflow==1.12.0
@@ -14,6 +15,7 @@ def get_section_results(file):
             elif v.tag == 'Eval_AverageReturn':
                 Y.append(v.simple_value)
     return X, Y
+
 
 if __name__ == '__main__':
     import glob

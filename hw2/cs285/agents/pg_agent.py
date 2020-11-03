@@ -130,7 +130,7 @@ class PGAgent(BaseAgent):
 
         # TODO: create list_of_discounted_returns
         # Hint: note that all entries of this output are equivalent
-            # because each sum is from 0 to T (and doesnt involve t)
+        # because each sum is from 0 to T (and doesnt involve t)
 
         return list_of_discounted_returns
 
@@ -143,9 +143,8 @@ class PGAgent(BaseAgent):
 
         # TODO: create `list_of_discounted_returns`
         # HINT1: note that each entry of the output should now be unique,
-            # because the summation happens over [t, T] instead of [0, T]
+        # because the summation happens over [t, T] instead of [0, T]
         # HINT2: it is possible to write a vectorized solution, but a solution
-            # using a for loop is also fine
+        # using a for loop is also fine
 
         return list_of_discounted_cumsums
-
