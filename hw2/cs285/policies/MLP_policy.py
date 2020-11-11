@@ -104,7 +104,8 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
     def forward(self, observation: torch.FloatTensor):
         # TODO: get this from hw1
         if self.discrete:
-            action_distribution = F.softmax(self.logits_na(observation))
+            action_probability = F.softmax(self.logits_na(observation))
+            action_distribution = distributions.categorical.Categorical(action_probability)
             return action_distribution
         else:
             loc = self.mean_net(observation)
