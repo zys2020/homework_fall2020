@@ -148,6 +148,7 @@ class PGAgent(BaseAgent):
         # because the summation happens over [t, T] instead of [0, T]
         # HINT2: it is possible to write a vectorized solution, but a solution
         # using a for loop is also fine
+        rewards = list(rewards)
         rewards.reverse()
         list_of_discounted_cumsums = [rewards[0]]
         for reward in rewards[1:]:
