@@ -37,7 +37,7 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
         self.training = training
         self.nn_baseline = nn_baseline
 
-        if self.discrete:
+        if self.discrete:  # discrete action environment
             self.logits_na = ptu.build_mlp(input_size=self.ob_dim,
                                            output_size=self.ac_dim,
                                            n_layers=self.n_layers,
@@ -47,7 +47,7 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
             self.logstd = None
             self.optimizer = optim.Adam(self.logits_na.parameters(),
                                         self.learning_rate)
-        else:
+        else:  # continuous action environment
             self.logits_na = None
             self.mean_net = ptu.build_mlp(input_size=self.ob_dim,
                                           output_size=self.ac_dim,
@@ -103,8 +103,15 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
     # `torch.distributions.Distribution` object. It's up to you!
     def forward(self, observation: torch.FloatTensor):
         # TODO: get this from hw1
-        action_distribution = self.mean_net(observation)
-        return action_distribution
+        if self.discrete:
+            action = self.logits_na(observation)
+            return action
+        else:
+            loc = self.mean_net(observation)
+            scale = torch.exp(self.logstd)
+            normal_distribution = distributions.normal.Normal(loc, scale)
+            action_distribution = normal_distribution.rsample()
+            return action_distribution
 
 
 #####################################################
