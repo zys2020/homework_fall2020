@@ -3,6 +3,7 @@ import itertools
 from typing import Any
 from torch import nn
 from torch import optim
+from torch import distributions
 
 import numpy as np
 import torch
@@ -136,8 +137,16 @@ class MLPPolicySL(MLPPolicy):
         }
 
     def forward(self, observation: torch.FloatTensor):
-        action = self.mean_net(observation)
-        return action
+        if self.discrete:
+            # The given environments are all continuous action environment, so this part will never be used.
+            action = self.logits_na(observation)
+            return action
+        else:
+            loc = self.mean_net(observation)
+            scale = torch.exp(self.logstd)
+            normal_distribution = distributions.normal.Normal(loc, scale)
+            action_distribution = normal_distribution.rsample()
+            return action_distribution
 
     def get_action(self, obs: np.ndarray):
         if len(obs.shape) > 1:
