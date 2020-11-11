@@ -148,7 +148,7 @@ class RL_Trainer(object):
     def collect_training_trajectories(self, itr, load_initial_expertdata, collect_policy, batch_size):
         # TODO: get this from hw1
         # if your load_initial_expertdata is None, then you need to collect new trajectories at *every* iteration
-        if itr == 0:
+        if itr == 0 and load_initial_expertdata is not None:
             with open(load_initial_expertdata, 'rb') as f:
                 # the number of training data collected (in the env) during each iteration defaults 1000
                 # so the expert data's shape is [1000, x](e.g., observation's x is 111, action's x is 8 ,etc)
