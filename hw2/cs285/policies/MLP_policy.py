@@ -104,13 +104,12 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
     def forward(self, observation: torch.FloatTensor):
         # TODO: get this from hw1
         if self.discrete:
-            action = self.logits_na(observation)
-            return action
+            action_distribution = F.softmax(self.logits_na(observation))
+            return action_distribution
         else:
             loc = self.mean_net(observation)
             scale = torch.exp(self.logstd)
-            normal_distribution = distributions.normal.Normal(loc, scale)
-            action_distribution = normal_distribution.rsample()
+            action_distribution = distributions.normal.Normal(loc, scale)
             return action_distribution
 
 
