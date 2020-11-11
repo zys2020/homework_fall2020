@@ -10,7 +10,7 @@ from torch import distributions
 
 from cs285.infrastructure import pytorch_util as ptu
 from cs285.policies.base_policy import BasePolicy
-
+from cs285.infrastructure.utils import normalize
 
 class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
 
@@ -63,6 +63,7 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
             )
 
         if nn_baseline:
+            # the approximated value function
             self.baseline = ptu.build_mlp(
                 input_size=self.ob_dim,
                 output_size=1,
@@ -104,14 +105,14 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
     def forward(self, observation: torch.FloatTensor):
         # TODO: get this from hw1
         if self.discrete:
-            action_probability = F.softmax(self.logits_na(observation))
-            action_distribution = distributions.categorical.Categorical(action_probability)
-            return action_distribution
+            actions_probability = F.softmax(self.logits_na(observation))
+            actions_distribution = distributions.categorical.Categorical(actions_probability)
+            return actions_distribution
         else:
             loc = self.mean_net(observation)
             scale = torch.exp(self.logstd)
-            action_distribution = distributions.normal.Normal(loc, scale)
-            return action_distribution
+            actions_distribution = distributions.normal.Normal(loc, scale)
+            return actions_distribution
 
 
 #####################################################
@@ -135,21 +136,30 @@ class MLPPolicyPG(MLPPolicy):
         # by the `forward` method
         # HINT3: don't forget that `optimizer.step()` MINIMIZES a loss
         actions_distribution = self.forward(observations)
-
-        loss =
+        loss = torch.sum(actions_distribution.log_prob(actions) * advantages)
 
         # TODO: optimize `loss` using `self.optimizer`
         # HINT: remember to `zero_grad` first
-        TODO
+
+        # Before the backward pass, use the optimizer object to zero all of the
+        # gradients for the variables it will update (which are the learnable
+        # weights of the model). This is because by default, gradients are
+        # accumulated in buffers( i.e, not overwritten) whenever .backward()
+        # is called. Checkout docs of torch.autograd.backward for more details.
+        self.optimizer.zero_grad()
+        # Backward pass: compute gradient of the loss with respect to model parameters
+        loss.backward()
+        # Calling the step function on an Optimizer makes an update to its parameters
+        self.optimizer.step()
 
         if self.nn_baseline:
             ## TODO: normalize the q_values to have a mean of zero and a standard deviation of one
             ## HINT: there is a `normalize` function in `infrastructure.utils`
-            targets = TODO
+            targets = normalize(q_values, np.mean(q_values), np.std(q_values))
             targets = ptu.from_numpy(targets)
 
             ## TODO: use the `forward` method of `self.baseline` to get baseline predictions
-            baseline_predictions = TODO
+            baseline_predictions = self.baseline(observations)
 
             ## avoid any subtle broadcasting bugs that can arise when dealing with arrays of shape
             ## [ N ] versus shape [ N x 1 ]
@@ -158,11 +168,13 @@ class MLPPolicyPG(MLPPolicy):
 
             # TODO: compute the loss that should be optimized for training the baseline MLP (`self.baseline`)
             # HINT: use `F.mse_loss`
-            baseline_loss = TODO
+            baseline_loss = self.baseline_loss(baseline_predictions, targets)
 
             # TODO: optimize `baseline_loss` using `self.baseline_optimizer`
             # HINT: remember to `zero_grad` first
-            TODO
+            self.baseline_optimizer.zero_grad()
+            baseline_loss.backward()
+            self.baseline_optimizer.step()
 
         train_log = {
             'Training Loss': ptu.to_numpy(loss),
