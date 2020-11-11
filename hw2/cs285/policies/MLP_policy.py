@@ -88,7 +88,7 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
     def get_action(self, obs: np.ndarray) -> np.ndarray:
         # TODO: get this from hw1
         observation = ptu.from_numpy(obs)
-        action = self.mean_net(observation)
+        action = self.forward(observation).sample()
         action = ptu.to_numpy(action)
         return action
 
@@ -134,8 +134,9 @@ class MLPPolicyPG(MLPPolicy):
         # HINT2: you will want to use the `log_prob` method on the distribution returned
         # by the `forward` method
         # HINT3: don't forget that `optimizer.step()` MINIMIZES a loss
+        actions_distribution = self.forward(observations)
 
-        loss = TODO
+        loss =
 
         # TODO: optimize `loss` using `self.optimizer`
         # HINT: remember to `zero_grad` first
