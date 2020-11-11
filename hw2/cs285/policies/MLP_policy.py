@@ -89,7 +89,8 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
     def get_action(self, obs: np.ndarray) -> np.ndarray:
         # TODO: get this from hw1
         observation = ptu.from_numpy(obs)
-        action = self.forward(observation).sample()
+        distribution = self.forward(observation)
+        action = distribution.sample()
         action = ptu.to_numpy(action)
         return action
 
@@ -105,7 +106,14 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
     def forward(self, observation: torch.FloatTensor):
         # TODO: get this from hw1
         if self.discrete:
-            actions_probability = F.softmax(self.logits_na(observation))
+            tmp = self.logits_na(observation)
+            actions_probability = F.softmax(tmp, dim=-1)
+            # print(actions_probability)
+            if torch.sum(torch.isnan(actions_probability)).item() > 0:
+                params = self.logits_na.parameters()
+                for param in params:
+                    print(param)
+                print(actions_probability)
             actions_distribution = distributions.categorical.Categorical(actions_probability)
             return actions_distribution
         else:
