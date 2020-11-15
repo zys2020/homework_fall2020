@@ -12,6 +12,7 @@ from cs285.infrastructure import pytorch_util as ptu
 from cs285.policies.base_policy import BasePolicy
 from cs285.infrastructure.utils import normalize
 
+
 class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
 
     def __init__(self,
@@ -108,7 +109,6 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
         if self.discrete:
             tmp = self.logits_na(observation)
             actions_probability = F.softmax(tmp, dim=-1)
-            # print(actions_probability)
             if torch.sum(torch.isnan(actions_probability)).item() > 0:
                 params = self.logits_na.parameters()
                 for param in params:
@@ -157,6 +157,12 @@ class MLPPolicyPG(MLPPolicy):
         self.optimizer.zero_grad()
         # Backward pass: compute gradient of the loss with respect to model parameters
         loss.backward()
+
+        # Solve gradient explosion
+        if self.discrete:
+            nn.utils.clip_grad_value_(self.logits_na.parameters(), 0.1)
+        else:
+            nn.utils.clip_grad_value_(self.mean_net.parameters(), 0.1)
         # Calling the step function on an Optimizer makes an update to its parameters
         self.optimizer.step()
 
