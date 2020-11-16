@@ -111,6 +111,7 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
             actions_probability = F.softmax(tmp, dim=-1)
             if torch.sum(torch.isnan(actions_probability)).item() > 0:
                 params = self.logits_na.parameters()
+                print(actions_probability)
                 for param in params:
                     print(param)
                 print(actions_probability)
@@ -144,7 +145,9 @@ class MLPPolicyPG(MLPPolicy):
         # by the `forward` method
         # HINT3: don't forget that `optimizer.step()` MINIMIZES a loss
         actions_distribution = self.forward(observations)
-        loss = torch.sum(actions_distribution.log_prob(actions) * advantages)
+        log_probs = actions_distribution.log_prob(actions)
+        loss = torch.sum(log_probs * advantages)
+        # loss = -(log_probs * advantages.view((-1, 1))).sum(axis=-1).mean()
 
         # TODO: optimize `loss` using `self.optimizer`
         # HINT: remember to `zero_grad` first
@@ -160,7 +163,8 @@ class MLPPolicyPG(MLPPolicy):
 
         # Solve gradient explosion
         if self.discrete:
-            nn.utils.clip_grad_value_(self.logits_na.parameters(), 0.1)
+            nn.utils.clip_grad_value_(self.logits_na.parameters(), 1e5)
+            # nn.utils.clip_grad_norm_(self.logits_na.parameters(), 1e-5)
         else:
             nn.utils.clip_grad_value_(self.mean_net.parameters(), 0.1)
         # Calling the step function on an Optimizer makes an update to its parameters

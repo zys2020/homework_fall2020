@@ -133,7 +133,8 @@ class PGAgent(BaseAgent):
         # Hint: note that all entries of this output are equivalent
         # because each sum is from 0 to T (and doesnt involve t)
         gammas = np.power(self.gamma, range(len(rewards)))
-        list_of_discounted_returns = gammas * np.array(rewards)
+        discounted_return = np.sum(gammas * np.array(rewards))
+        list_of_discounted_returns = [discounted_return] * len(rewards)
         return list_of_discounted_returns
 
     def _discounted_cumsum(self, rewards):
