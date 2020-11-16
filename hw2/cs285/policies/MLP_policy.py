@@ -104,24 +104,38 @@ class MLPPolicy(BasePolicy, nn.Module, metaclass=abc.ABCMeta):
     # through it. For example, you can return a torch.FloatTensor. You can also
     # return more flexible objects, such as a
     # `torch.distributions.Distribution` object. It's up to you!
-    def forward(self, observation: torch.FloatTensor):
+    def forward(self, observation: torch.FloatTensor, multivariate=False):
         # TODO: get this from hw1
         if self.discrete:
             tmp = self.logits_na(observation)
             actions_probability = F.softmax(tmp, dim=-1)
+            # inspect gradient of discrete actions
             if torch.sum(torch.isnan(actions_probability)).item() > 0:
                 params = self.logits_na.parameters()
                 print(actions_probability)
                 for param in params:
                     print(param)
                 print(actions_probability)
+                assert False, "Gradient Error"
             actions_distribution = distributions.categorical.Categorical(actions_probability)
             return actions_distribution
         else:
-            loc = self.mean_net(observation)
-            scale = torch.exp(self.logstd)
-            actions_distribution = distributions.normal.Normal(loc, scale)
-            return actions_distribution
+            if not multivariate:
+                loc = self.mean_net(observation)
+                scale = torch.exp(self.logstd)
+                actions_distribution = distributions.normal.Normal(loc, scale)
+                return actions_distribution
+            else:
+                # Multivariate Gaussian distribution version
+                batch_mean = self.mean_net(observation)
+                batch_scale_tril = torch.diag(torch.exp(self.logstd))
+                # batch_dim = batch_mean.shape[0]
+                # batch_scale_tril = scale_tril.repeat(batch_dim, 1, 1)
+                actions_distribution = distributions.MultivariateNormal(
+                    batch_mean,
+                    scale_tril=batch_scale_tril,
+                )
+                return actions_distribution
 
 
 #####################################################
@@ -132,7 +146,7 @@ class MLPPolicyPG(MLPPolicy):
         super().__init__(ac_dim, ob_dim, n_layers, size, **kwargs)
         self.baseline_loss = nn.MSELoss()
 
-    def update(self, observations, actions, advantages, q_values=None):
+    def update(self, observations, actions, advantages, q_values=None, multivariate=False, clip_grad=False):
         observations = ptu.from_numpy(observations)
         actions = ptu.from_numpy(actions)
         advantages = ptu.from_numpy(advantages)
@@ -144,10 +158,15 @@ class MLPPolicyPG(MLPPolicy):
         # HINT2: you will want to use the `log_prob` method on the distribution returned
         # by the `forward` method
         # HINT3: don't forget that `optimizer.step()` MINIMIZES a loss
-        actions_distribution = self.forward(observations)
+        actions_distribution = self.forward(observations, multivariate)
         log_probs = actions_distribution.log_prob(actions)
-        loss = torch.sum(log_probs * advantages)
-        # loss = -(log_probs * advantages.view((-1, 1))).sum(axis=-1).mean()
+
+        # how to compute the probability of multi-dimensional continuous action
+        # log probability products each dimension of continuous action
+        if not multivariate:
+            loss = -(log_probs * advantages.view((-1, 1))).sum(axis=-1).mean()
+        else:
+            loss = torch.sum(log_probs * advantages)
 
         # TODO: optimize `loss` using `self.optimizer`
         # HINT: remember to `zero_grad` first
@@ -162,11 +181,12 @@ class MLPPolicyPG(MLPPolicy):
         loss.backward()
 
         # Solve gradient explosion
-        # if self.discrete:
-        #     nn.utils.clip_grad_value_(self.logits_na.parameters(), 1e5)
-        #     # nn.utils.clip_grad_norm_(self.logits_na.parameters(), 1e-5)
-        # else:
-        #     nn.utils.clip_grad_value_(self.mean_net.parameters(), 0.1)
+        if clip_grad:
+            if self.discrete:
+                nn.utils.clip_grad_value_(self.logits_na.parameters(), 1e5)
+                # nn.utils.clip_grad_norm_(self.logits_na.parameters(), 1e-5)
+            else:
+                nn.utils.clip_grad_value_(self.mean_net.parameters(), 0.1)
 
         # Calling the step function on an Optimizer makes an update to its parameters
         self.optimizer.step()
@@ -178,7 +198,7 @@ class MLPPolicyPG(MLPPolicy):
             targets = ptu.from_numpy(targets)
 
             ## TODO: use the `forward` method of `self.baseline` to get baseline predictions
-            baseline_predictions = self.baseline(observations)
+            baseline_predictions = self.baseline(observations).squeeze()
 
             ## avoid any subtle broadcasting bugs that can arise when dealing with arrays of shape
             ## [ N ] versus shape [ N x 1 ]
