@@ -153,7 +153,7 @@ class PGAgent(BaseAgent):
         rewards.reverse()
         list_of_discounted_cumsums = [rewards[0]]
         for reward in rewards[1:]:
-            discount_reward = np.sum(self.gamma * np.array(list_of_discounted_cumsums)) + reward
+            discount_reward = np.sum(self.gamma * list_of_discounted_cumsums[-1]) + reward
             list_of_discounted_cumsums.append(discount_reward)
         list_of_discounted_cumsums.reverse()
         return list_of_discounted_cumsums

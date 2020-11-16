@@ -162,11 +162,12 @@ class MLPPolicyPG(MLPPolicy):
         loss.backward()
 
         # Solve gradient explosion
-        if self.discrete:
-            nn.utils.clip_grad_value_(self.logits_na.parameters(), 1e5)
-            # nn.utils.clip_grad_norm_(self.logits_na.parameters(), 1e-5)
-        else:
-            nn.utils.clip_grad_value_(self.mean_net.parameters(), 0.1)
+        # if self.discrete:
+        #     nn.utils.clip_grad_value_(self.logits_na.parameters(), 1e5)
+        #     # nn.utils.clip_grad_norm_(self.logits_na.parameters(), 1e-5)
+        # else:
+        #     nn.utils.clip_grad_value_(self.mean_net.parameters(), 0.1)
+
         # Calling the step function on an Optimizer makes an update to its parameters
         self.optimizer.step()
 
