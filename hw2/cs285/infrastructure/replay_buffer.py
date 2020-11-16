@@ -91,4 +91,5 @@ class ReplayBuffer(object):
             rollouts_to_return = self.paths[-num_recent_rollouts_to_return:]
             observations, actions, next_observations, terminals, concatenated_rews, unconcatenated_rews = convert_listofrollouts(
                 rollouts_to_return)
+            # return more than one rollouts, so time order has to not accurate.
             return observations, actions, unconcatenated_rews, next_observations, terminals
